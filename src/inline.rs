@@ -1,9 +1,9 @@
 //! Simple implementations of the various inline storages.
 
-mod multi_element;
-mod single_element;
-mod single_range;
+mod tracking_elements;
+mod non_tracking_element;
+mod non_tracking_range;
 
-pub use multi_element::{MultiElement, MultiElementHandle};
-pub use single_element::SingleElement;
-pub use single_range::SingleRange;
+pub use tracking_elements::{TrackingElement, TrackingElementHandle};
+pub use non_tracking_element::NonTrackingElement;
+pub use non_tracking_range::NonTrackingRange;

@@ -5,10 +5,8 @@
 //!
 //! It is simpler than alternative, however is heavier weight.
 
-mod multi_element;
-mod single_element;
-mod single_range;
+mod fallback_element;
+mod fallback_range;
 
-pub use multi_element::MultiElement;
-pub use single_element::SingleElement;
-pub use single_range::SingleRange;
+pub use fallback_element::FallbackElement;
+pub use fallback_range::FallbackRange;
