@@ -34,7 +34,7 @@ impl<A: Allocator> ElementStorage for AllocStorage<A> {
     unsafe fn deallocate<T: ?Sized + Pointee>(&mut self, handle: &Self::Handle<T>) {
         //  Safety:
         //  -   `element` points to a valid value.
-        let layout = Layout::for_value(handle);
+        let layout = Layout::for_value_raw(handle.as_ptr());
 
         //  Safety:
         //  -   `element` was allocated by call to `self.allocator`.

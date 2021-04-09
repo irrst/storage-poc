@@ -12,7 +12,7 @@ use core::{
 
 use rfc2580::{self, Pointee};
 
-use crate::traits::ElementStorage;
+use crate::{traits::ElementStorage, utils};
 
 pub struct NonTrackingElementHandle<T: ?Sized + Pointee, S> {
     data: UnsafeCell<MaybeUninit<S>>,
@@ -63,6 +63,8 @@ impl<S> ElementStorage for NonTrackingElement<S> {
         &mut self,
         meta: T::MetaData,
     ) -> Result<Self::Handle<T>, AllocError> {
+        let _ = utils::validate_layout::<T, S>(meta)?;
+
         Ok(NonTrackingElementHandle { data: UnsafeCell::new(MaybeUninit::uninit()), meta })
     }
 }
