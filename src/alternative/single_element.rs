@@ -6,8 +6,8 @@ use core::{
     hint,
     marker::Unsize,
     mem,
-    ptr::NonNull,
     mem::ManuallyDrop,
+    ptr::NonNull,
 };
 
 use rfc2580::Pointee;
@@ -77,13 +77,15 @@ where
     fn create<T: Pointee>(&mut self, value: T) -> Result<Self::Handle<T>, T> {
         match &mut self.0 {
             Inner::First(ref mut first) => match first.create(value) {
-                Ok(first) => Ok(SingleElementHandle { first: ManuallyDrop::new(first) }),
+                Ok(first) => Ok(SingleElementHandle {
+                    first: ManuallyDrop::new(first),
+                }),
                 Err(value) => {
                     if let Inner::First(first) = mem::replace(&mut self.0, Inner::Poisoned) {
                         let (second, result) = first.transform(|_, second: &mut S| {
-                            second
-                                .create(value)
-                                .map(|second| SingleElementHandle { second: ManuallyDrop::new(second) })
+                            second.create(value).map(|second| SingleElementHandle {
+                                second: ManuallyDrop::new(second),
+                            })
                         });
                         self.0 = Inner::Second(second);
                         return result;
@@ -93,9 +95,11 @@ where
                     unsafe { hint::unreachable_unchecked() };
                 }
             },
-            Inner::Second(ref mut second) => second
-                .create(value)
-                .map(|second| SingleElementHandle { second: ManuallyDrop::new(second) }),
+            Inner::Second(ref mut second) => {
+                second.create(value).map(|second| SingleElementHandle {
+                    second: ManuallyDrop::new(second),
+                })
+            }
             Inner::Poisoned => panic!("Poisoned"),
         }
     }
@@ -106,13 +110,15 @@ where
     ) -> Result<Self::Handle<T>, AllocError> {
         match &mut self.0 {
             Inner::First(ref mut first) => match first.allocate(meta) {
-                Ok(first) => Ok(SingleElementHandle { first: ManuallyDrop::new(first) }),
+                Ok(first) => Ok(SingleElementHandle {
+                    first: ManuallyDrop::new(first),
+                }),
                 Err(_) => {
                     if let Inner::First(first) = mem::replace(&mut self.0, Inner::Poisoned) {
                         let (second, result) = first.transform(|_, second: &mut S| {
-                            second
-                                .allocate(meta)
-                                .map(|second| SingleElementHandle { second: ManuallyDrop::new(second) })
+                            second.allocate(meta).map(|second| SingleElementHandle {
+                                second: ManuallyDrop::new(second),
+                            })
                         });
                         self.0 = Inner::Second(second);
                         return result;
@@ -122,9 +128,11 @@ where
                     unsafe { hint::unreachable_unchecked() };
                 }
             },
-            Inner::Second(ref mut second) => second
-                .allocate(meta)
-                .map(|second| SingleElementHandle { second: ManuallyDrop::new(second) }),
+            Inner::Second(ref mut second) => {
+                second.allocate(meta).map(|second| SingleElementHandle {
+                    second: ManuallyDrop::new(second),
+                })
+            }
             Inner::Poisoned => panic!("Poisoned"),
         }
     }

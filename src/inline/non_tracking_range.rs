@@ -2,12 +2,12 @@
 
 use core::{
     alloc::AllocError,
+    cell::UnsafeCell,
     cmp,
     fmt::{self, Debug},
     marker::PhantomData,
     mem::{self, MaybeUninit},
     ptr::NonNull,
-    cell::UnsafeCell,
 };
 
 use crate::{
@@ -22,7 +22,7 @@ pub struct NonTrackingRangeHandle<T, S, const N: usize> {
 
 /// NonTrackingRange is an inline storage without tracking.
 pub struct NonTrackingRange<C, S, const N: usize> {
-    _marker: PhantomData<(C, S)>
+    _marker: PhantomData<(C, S)>,
 }
 
 impl<C: Capacity, S, const N: usize> NonTrackingRange<C, S, N> {
@@ -61,7 +61,10 @@ impl<C: Capacity, S, const N: usize> RangeStorage for NonTrackingRange<C, S, N> 
 
     fn allocate<T>(&mut self, capacity: Self::Capacity) -> Result<Self::Handle<T>, AllocError> {
         utils::validate_array_layout::<T, [MaybeUninit<S>; N]>(capacity.into_usize())?;
-        Ok(NonTrackingRangeHandle { data: UnsafeCell::new(MaybeUninit::uninit_array()), _marker: PhantomData})
+        Ok(NonTrackingRangeHandle {
+            data: UnsafeCell::new(MaybeUninit::uninit_array()),
+            _marker: PhantomData,
+        })
     }
 }
 

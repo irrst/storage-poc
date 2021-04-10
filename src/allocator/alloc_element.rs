@@ -4,13 +4,17 @@ use core::{
     alloc::{AllocError, Allocator, Layout},
     fmt::{self, Debug},
     marker::Unsize,
+    mem::MaybeUninit,
     ptr::NonNull,
-    mem::MaybeUninit
 };
 
 use rfc2580::{self, Pointee};
 
-use crate::{alternative::Builder, traits::{ElementStorage, RangeStorage}, utils};
+use crate::{
+    alternative::Builder,
+    traits::{ElementStorage, RangeStorage},
+    utils,
+};
 
 use super::AllocatorBuilder;
 
@@ -259,7 +263,9 @@ mod tests {
 
         let handle = unsafe { storage.coerce::<[u8], _>(&handle) };
 
-        assert_eq!([1, 2], unsafe { <_ as ElementStorage>::get(&storage, &handle).as_ref() });
+        assert_eq!([1, 2], unsafe {
+            <_ as ElementStorage>::get(&storage, &handle).as_ref()
+        });
 
         unsafe { storage.destroy(&handle) };
 

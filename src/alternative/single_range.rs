@@ -5,9 +5,9 @@ use core::{
     cmp,
     fmt::{self, Debug},
     hint,
+    mem::ManuallyDrop,
     mem::{self, MaybeUninit},
     ptr::{self, NonNull},
-    mem::ManuallyDrop,
 };
 
 use crate::traits::{Capacity, RangeStorage};
@@ -78,14 +78,18 @@ where
                     .and_then(|new_capacity| first.try_grow(&handle.first, new_capacity));
 
                 match grow {
-                    Ok(first) => Ok(SingleRangeHandle { first: ManuallyDrop::new(first) }),
+                    Ok(first) => Ok(SingleRangeHandle {
+                        first: ManuallyDrop::new(first),
+                    }),
                     Err(_) => {
                         if let Inner::First(first) = mem::replace(&mut self.0, Inner::Poisoned) {
                             let (second, result) =
                                 first.transform(|first: &mut F, second: &mut S| {
                                     let new_handle = second.allocate(new_capacity)?;
                                     transfer(first.get(&handle.first), second.get(&new_handle));
-                                    Ok(SingleRangeHandle { second: ManuallyDrop::new(new_handle) })
+                                    Ok(SingleRangeHandle {
+                                        second: ManuallyDrop::new(new_handle),
+                                    })
                                 });
                             self.0 = Inner::Second(second);
                             return result;
@@ -96,9 +100,13 @@ where
                     }
                 }
             }
-            Inner::Second(ref mut second) => second
-                .try_grow(&handle.second, new_capacity)
-                .map(|second| SingleRangeHandle { second: ManuallyDrop::new(second) }),
+            Inner::Second(ref mut second) => {
+                second
+                    .try_grow(&handle.second, new_capacity)
+                    .map(|second| SingleRangeHandle {
+                        second: ManuallyDrop::new(second),
+                    })
+            }
             Inner::Poisoned => panic!("Poisoned"),
         }
     }
@@ -111,13 +119,17 @@ where
         match &mut self.0 {
             Inner::First(ref mut first) => first
                 .try_shrink(&handle.first, into_first::<F, S>(new_capacity)?)
-                .map(|first| SingleRangeHandle { first: ManuallyDrop::new(first) }),
+                .map(|first| SingleRangeHandle {
+                    first: ManuallyDrop::new(first),
+                }),
 
             Inner::Second(ref mut second) => {
                 let shrink = second.try_shrink(&handle.second, new_capacity);
 
                 match shrink {
-                    Ok(second) => Ok(SingleRangeHandle { second: ManuallyDrop::new(second) }),
+                    Ok(second) => Ok(SingleRangeHandle {
+                        second: ManuallyDrop::new(second),
+                    }),
                     Err(_) => {
                         let new_capacity = into_first::<F, S>(new_capacity)?;
 
@@ -126,7 +138,9 @@ where
                                 second.transform(|second: &mut S, first: &mut F| {
                                     let new_handle = first.allocate(new_capacity)?;
                                     transfer(second.get(&handle.second), first.get(&new_handle));
-                                    Ok(SingleRangeHandle { first: ManuallyDrop::new(new_handle) })
+                                    Ok(SingleRangeHandle {
+                                        first: ManuallyDrop::new(new_handle),
+                                    })
                                 });
                             self.0 = Inner::First(first);
                             return result;
@@ -148,13 +162,15 @@ where
                     into_first::<F, S>(capacity).and_then(|capacity| first.allocate(capacity));
 
                 match handle {
-                    Ok(first) => Ok(SingleRangeHandle { first: ManuallyDrop::new(first) }),
+                    Ok(first) => Ok(SingleRangeHandle {
+                        first: ManuallyDrop::new(first),
+                    }),
                     Err(_) => {
                         if let Inner::First(first) = mem::replace(&mut self.0, Inner::Poisoned) {
                             let (second, result) = first.transform(|_, second: &mut S| {
-                                second
-                                    .allocate(capacity)
-                                    .map(|second| SingleRangeHandle { second: ManuallyDrop::new(second) })
+                                second.allocate(capacity).map(|second| SingleRangeHandle {
+                                    second: ManuallyDrop::new(second),
+                                })
                             });
                             self.0 = Inner::Second(second);
                             return result;
@@ -165,9 +181,11 @@ where
                     }
                 }
             }
-            Inner::Second(ref mut second) => second
-                .allocate(capacity)
-                .map(|second| SingleRangeHandle { second: ManuallyDrop::new(second) }),
+            Inner::Second(ref mut second) => {
+                second.allocate(capacity).map(|second| SingleRangeHandle {
+                    second: ManuallyDrop::new(second),
+                })
+            }
             Inner::Poisoned => panic!("Poisoned"),
         }
     }

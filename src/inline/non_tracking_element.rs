@@ -2,12 +2,12 @@
 
 use core::{
     alloc::AllocError,
+    cell::UnsafeCell,
     fmt::{self, Debug},
+    marker::PhantomData,
     marker::Unsize,
     mem::MaybeUninit,
     ptr::{self, NonNull},
-    marker::PhantomData,
-    cell::UnsafeCell,
 };
 
 use rfc2580::{self, Pointee};
@@ -54,7 +54,10 @@ impl<S> ElementStorage for NonTrackingElement<S> {
 
         let meta = rfc2580::into_raw_parts(element.as_ptr() as *mut U).0;
 
-        let new_handle = NonTrackingElementHandle { data: UnsafeCell::new(MaybeUninit::uninit()), meta };
+        let new_handle = NonTrackingElementHandle {
+            data: UnsafeCell::new(MaybeUninit::uninit()),
+            meta,
+        };
         ptr::copy_nonoverlapping::<MaybeUninit<S>>(handle.data.get(), new_handle.data.get(), 1);
         new_handle
     }
@@ -65,14 +68,17 @@ impl<S> ElementStorage for NonTrackingElement<S> {
     ) -> Result<Self::Handle<T>, AllocError> {
         let _ = utils::validate_layout::<T, S>(meta)?;
 
-        Ok(NonTrackingElementHandle { data: UnsafeCell::new(MaybeUninit::uninit()), meta })
+        Ok(NonTrackingElementHandle {
+            data: UnsafeCell::new(MaybeUninit::uninit()),
+            meta,
+        })
     }
 }
 
 impl<S> NonTrackingElement<S> {
     pub(crate) fn new() -> Self {
         Self {
-            _marker: PhantomData
+            _marker: PhantomData,
         }
     }
 }

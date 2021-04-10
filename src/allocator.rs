@@ -1,7 +1,7 @@
 //! Simple implementations of the various allocator adaptor storages.
 
-mod builder;
 mod alloc_element;
+mod builder;
 
-pub use builder::AllocatorBuilder;
 pub use alloc_element::AllocStorage;
+pub use builder::AllocatorBuilder;
